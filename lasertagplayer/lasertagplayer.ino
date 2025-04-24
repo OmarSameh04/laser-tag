@@ -73,8 +73,7 @@ void loop() {
     digitalWrite(laser,LOW);  // Debounce
   }
   //shot code
-  if(isShot1())
-    isShot2();
+  isShot();
   if(shot){
     life--;
     if(life==0){
@@ -110,54 +109,27 @@ bool isCalibrated(){
   //Serial.println(data);
   return data>=3000;
 }
-void isShot1(){
-  double val[] = {0,0,0,0};
-  for(int i=0;i<4;i++){
-    if(i==3)
-      val[i] = (double)analogRead(chest[3])/analogRead(chest_1);
-    else
-      val[i] = (double)(analogRead(chest[i]) - analogRead(chest[i+1]))/analogRead(chest_1);
+void isShot(){
+ delay(50);
+  double data[] = {0,0,0,0};
+  for(int i = 0; i<4;i++){
+    data[i] = (double)analogRead(chest[i])/4096;
   }
-  delay(50);
-  for(int i=0;i<4;i++){
-    double value = 0;
-    if(i==3){
-      value = (double)analogRead(chest[3])/analogRead(chest_1);
-      shot = (!shot)&&(((double)(val[i] - value)/val[i])>=0.05);
-
-      Serial.println(value);
+  int index1 = 0;
+  double min1 = 1;
+  int index2 = 0;
+  double min2 = 1; 
+  for(int i = 0; i<4; i++){
+    if(data[i]<min1){
+      min2 = min1;
+      min1 = data[i];
     }
-    else{
-      value = (double)(analogRead(chest[i]) - analogRead(chest[i+1]))/analogRead(chest_1);
-      shot = (!shot)&&(((double)(val[i] - value)/val[i])>=0.05);
-      Serial.println(value);
+    else if(data[i]>min1&&data[i]<min2){
+      min2 = data[i];
     }
   }
-}
-void isShot2(){
-  for(int i =0;i<4;i++){
-    double val = 0;
-    if(i==3){
-      val = (double)analogRead(chest[3])/analogRead(chest_1);
-      if(val<=0.14)
-        shot = true;
-    }
-    if(i==2){
-      val = (double)(analogRead(chest[i]) - analogRead(chest[i+1]))/analogRead(chest_1);
-      if(val<=0.17)
-        shot = true;
-    }
-    if(i==1){
-      val = (double)(analogRead(chest[i]) - analogRead(chest[i+1]))/analogRead(chest_1);
-      if(val<=0.20)
-        shot = true;
-    }
-    if(i==0){
-      val = (double)(analogRead(chest[i]) - analogRead(chest[i+1]))/analogRead(chest_1);
-      if(val<=0.25)
-        shot = true;
-    }
-    Serial.println(val);
-    //Serial.println(analogRead(chest_1));  
-  }
+  if(min1<0.8*min2)
+    shot=true;
+  else
+    Serial.println("no");
 }
