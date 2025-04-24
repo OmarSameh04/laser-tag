@@ -1,5 +1,6 @@
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
+#include <WiFi.h>
 
 
 #define chest_1 36 
@@ -9,11 +10,18 @@
 #define Calibrated 4
 #define trigger 13
 #define laser 14
+#define SDA_PIN 21  // for RF module
+#define SCL_PIN 22  // for RF module
+
+const char* ssid = "Omar";
+const char* password = "za3bolameow";
 const int chest[] = {chest_1, chest_2, chest_3, chest_4};
 bool shot = false;
-LiquidCrystal_I2C lcd(0x27, 16, 2);
 int life = 10;
 int ammo = 10;
+WiFiClient client;
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
 
  byte heart[8] = {
   B00000,
@@ -40,8 +48,13 @@ byte bullet[8] = {
 
 void setup() {
  // Serial.begin(115200);
+  WiFi.begin(ssid,password);
   lcd.init();
-  lcd.backlight();
+  lcd.createChar(0, heart);
+  lcd.createChar(1, bullet);
+  lcd.backlight(); 
+  Wire.begin(SDA_PIN, SCL_PIN, 100000);
+  //initialisation of the RF module 
   pinMode(chest_1,INPUT);
   pinMode(chest_2,INPUT);
   pinMode(chest_3,INPUT);
@@ -50,12 +63,26 @@ void setup() {
   pinMode(trigger,INPUT);
   pinMode(laser,OUTPUT);
   //while(!isCalibrated());
-  digitalWrite(Calibrated, HIGH);
-  delay(1000);
-
-  lcd.createChar(0, heart);
-  lcd.createChar(1, bullet); 
-  updateLCD();
+  //digitalWrite(Calibrated, HIGH);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(700);
+    lcd.setCursor(0,0);
+    lcd.print(".");
+  }
+  if (client.connect("192.168.4.1", 1234)) {   
+    lcd.setCursor(0,0);
+    lcd.print("                ");
+    lcd.setCursor(2,0);
+    lcd.print("READY TO PLAY!");
+    lcd.setCursor(3,1);
+    lcd.print("LASER TAG!");
+    delay(1000);
+    updateLCD();
+  }
+  else {
+    lcd.setCursor(0,0);
+    lcd.print("CONN. FAILED");
+  }
 }
 
 void loop() {
@@ -65,17 +92,23 @@ void loop() {
   char trig2 = digitalRead(trigger);
   if ((trig2 == HIGH)&&(trig1==LOW)) {  // Button pressed (assuming pull-up)
     if (ammo > 0){
-     ammo--;
-     digitalWrite(laser,HIGH);
+      ammo--;
+      if (client.connected()) {
+        client.println("HP:" + String(life) + "|AMMO:" + String(ammo));
+      }      
+      digitalWrite(laser,HIGH);
     }
     updateLCD();
     delay(300);
-    digitalWrite(laser,LOW);  // Debounce
+    digitalWrite(laser,LOW);
   }
   //shot code
   isShot();
   if(shot){
     life--;
+    if (client.connected()) {
+      client.println("HP:" + String(life) + "|AMMO:" + String(ammo));
+    }    
     if(life==0){
       //endgame logic
     }
@@ -84,7 +117,7 @@ void loop() {
       updateLCD();
     }
     delay(300);
-  }
+  } 
 }
 
 void updateLCD() {
