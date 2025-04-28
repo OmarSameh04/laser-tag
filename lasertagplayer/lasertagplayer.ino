@@ -1,4 +1,5 @@
-#include <Wire.h>
+#include <MFRC522.h>
+#include <SPI.h>
 #include <LiquidCrystal_I2C.h>
 #include <WiFi.h>
 
@@ -7,23 +8,26 @@
 #define chest_2 39
 #define chest_3 34
 #define chest_4 35
-#define Calibrated 4
 #define trigger 13
 #define laser 14
-#define SDA_PIN 21  // for RF module
-#define SCL_PIN 22  // for RF module
+#define SCK 18
+#define MOSI 23
+#define MISO 19
+#define RST 4
+#define SS 5    // SDA
 
-const char* ssid = "Omar";
-const char* password = "za3bolameow";
+const char* ssid = "Sameh";
+const char* password = "123456SR";
 const int chest[] = {chest_1, chest_2, chest_3, chest_4};
 bool shot = false;
 int life = 10;
 int ammo = 10;
+
 WiFiClient client;
 LiquidCrystal_I2C lcd(0x27, 16, 2);
+MFRC522 mfrc522(SS, RST);
 
-
- byte heart[8] = {
+byte heart[8] = {
   B00000,
   B00000,
   B11011,
@@ -34,7 +38,7 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
   B00000
 };
 
-// Custom bullet character
+
 byte bullet[8] = {
   B00100,
   B01110,
@@ -48,18 +52,19 @@ byte bullet[8] = {
 
 void setup() {
  // Serial.begin(115200);
+  SPI.begin();        
+  mfrc522.PCD_Init();
   WiFi.begin(ssid,password);
   lcd.init();
   lcd.createChar(0, heart);
   lcd.createChar(1, bullet);
   lcd.backlight(); 
-  Wire.begin(SDA_PIN, SCL_PIN, 100000);
   //initialisation of the RF module 
   pinMode(chest_1,INPUT);
   pinMode(chest_2,INPUT);
   pinMode(chest_3,INPUT);
   pinMode(chest_4,INPUT);
-  pinMode(Calibrated, OUTPUT);
+//  pinMode(Calibrated, OUTPUT);
   pinMode(trigger,INPUT);
   pinMode(laser,OUTPUT);
   //while(!isCalibrated());
@@ -67,9 +72,9 @@ void setup() {
   while (WiFi.status() != WL_CONNECTED) {
     delay(700);
     lcd.setCursor(0,0);
-    lcd.print(".");
+    lcd.print("CONNECTING");
   }
-  if (client.connect("192.168.4.1", 1234)) {   
+  if (client.connect("192.168.1.15", 1234)) {   
     lcd.setCursor(0,0);
     lcd.print("                ");
     lcd.setCursor(2,0);
@@ -93,9 +98,9 @@ void loop() {
   if ((trig2 == HIGH)&&(trig1==LOW)) {  // Button pressed (assuming pull-up)
     if (ammo > 0){
       ammo--;
-      if (client.connected()) {
+      //if (client.connected()) 
         client.println("HP:" + String(life) + "|AMMO:" + String(ammo));
-      }      
+            
       digitalWrite(laser,HIGH);
     }
     updateLCD();
@@ -107,7 +112,7 @@ void loop() {
   if(shot){
     life--;
     if (client.connected()) {
-      client.println("HP:" + String(life) + "|AMMO:" + String(ammo));
+      client.println("P1|HP:" + String(life) + "|AMMO:" + String(ammo));
     }    
     if(life==0){
       //endgame logic
@@ -117,6 +122,16 @@ void loop() {
       updateLCD();
     }
     delay(300);
+  }
+  //reload code
+  if (mfrc522.PICC_IsNewCardPresent() && mfrc522.PICC_ReadCardSerial()) {
+    lcd.setCursor(0,1);
+    lcd.print("                ");
+    lcd.setCursor(0,0);
+    lcd.print("Reloading.......");
+    delay(1000);
+    ammo = 10; 
+    updateLCD();
   } 
 }
 
@@ -163,6 +178,6 @@ void isShot(){
   }
   if(min1<0.8*min2)
     shot=true;
-  else
+  else{}
     //Serial.println("no");
 }
