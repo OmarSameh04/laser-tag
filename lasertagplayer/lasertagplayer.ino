@@ -8,6 +8,8 @@
 #define chest_2 39
 #define chest_3 34
 #define chest_4 35
+#define back_1 32
+#define back_2 33
 #define trigger 13
 #define laser 14
 #define SCK 18
@@ -59,11 +61,12 @@ void setup() {
   lcd.createChar(0, heart);
   lcd.createChar(1, bullet);
   lcd.backlight(); 
-  //initialisation of the RF module 
   pinMode(chest_1,INPUT);
   pinMode(chest_2,INPUT);
   pinMode(chest_3,INPUT);
   pinMode(chest_4,INPUT);
+  pinMode(back_1, INPUT);
+  pinMode(back_2, INPUT);
 //  pinMode(Calibrated, OUTPUT);
   pinMode(trigger,INPUT);
   pinMode(laser,OUTPUT);
