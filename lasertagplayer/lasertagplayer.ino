@@ -84,7 +84,8 @@ void setup() {
     lcd.print("READY TO PLAY!");
     lcd.setCursor(3,1);
     lcd.print("LASER TAG!");
-    delay(1000);
+    client.println("HP:" + String(life) + "|AMMO:" + String(ammo));
+    delay(2000);
     updateLCD();
   }
   else {
@@ -111,11 +112,11 @@ void loop() {
     digitalWrite(laser,LOW);
   }
   //shot code
-  isShot();
+  //isShot();
   if(shot){
     life--;
     if (client.connected()) {
-      client.println("P1|HP:" + String(life) + "|AMMO:" + String(ammo));
+      client.println("HP:" + String(life) + "|AMMO:" + String(ammo));
     }    
     if(life==0){
       //endgame logic
