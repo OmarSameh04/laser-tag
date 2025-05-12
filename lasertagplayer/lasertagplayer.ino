@@ -67,11 +67,8 @@ void setup() {
   pinMode(chest_4,INPUT);
   pinMode(back_1, INPUT);
   pinMode(back_2, INPUT);
-//  pinMode(Calibrated, OUTPUT);
   pinMode(trigger,INPUT);
   pinMode(laser,OUTPUT);
-  //while(!isCalibrated());
-  //digitalWrite(Calibrated, HIGH);
   while (WiFi.status() != WL_CONNECTED) {
     delay(700);
     lcd.setCursor(0,0);
@@ -99,7 +96,7 @@ void loop() {
   char trig1 = digitalRead(trigger);
   delay(25);
   char trig2 = digitalRead(trigger);
-  if ((trig2 == HIGH)&&(trig1==LOW)) {  // Button pressed (assuming pull-up)
+  if ((trig2 == HIGH)&&(trig1==LOW)) {  // Button pressed (assuming pull-down)
     if (ammo > 0){
       ammo--;
       //if (client.connected()) 
@@ -182,6 +179,4 @@ void isShot(){
   }
   if(min1<0.8*min2)
     shot=true;
-  else{}
-    //Serial.println("no");
 }
