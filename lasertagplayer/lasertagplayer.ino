@@ -100,8 +100,7 @@ void loop() {
     if (ammo > 0){
       ammo--;
       //if (client.connected()) 
-        client.println("HP:" + String(life) + "|AMMO:" + String(ammo));
-            
+      client.println("HP:" + String(life) + "|AMMO:" + String(ammo));
       digitalWrite(laser,HIGH);
     }
     updateLCD();
@@ -112,6 +111,10 @@ void loop() {
   //isShot();
   if(shot){
     life--;
+    lcd.setCursor(0,0);
+    lcd.print("                ");
+    lcd.setCursor(4,0);
+    lcd.print("OUCH!");    
     if (client.connected()) {
       client.println("HP:" + String(life) + "|AMMO:" + String(ammo));
     }    
@@ -120,18 +123,27 @@ void loop() {
     }
     else{
       shot = false;
+      delay(300);
       updateLCD();
     }
-    delay(300);
   }
   //reload code
   if (mfrc522.PICC_IsNewCardPresent() && mfrc522.PICC_ReadCardSerial()) {
     lcd.setCursor(0,1);
     lcd.print("                ");
     lcd.setCursor(0,0);
-    lcd.print("Reloading.......");
-    delay(1000);
-    ammo = 10; 
+    lcd.print("Reloading...");
+    delay(300);
+    lcd.setCursor(0,0);
+    lcd.print("Reloading....");
+    delay(300);
+    lcd.setCursor(0,0);
+    lcd.print("Reloading.....");
+    delay(300);
+    lcd.setCursor(0,0);
+    lcd.print("Reloading......");
+    delay(300);
+    ammo = 10;
     updateLCD();
   } 
 }
