@@ -22,6 +22,7 @@ const char* ssid = "Sameh";
 const char* password = "123456SR";
 const int chest[] = {chest_1, chest_2, chest_3, chest_4};
 bool shot = false;
+bool hasShot = false;
 int life = 10;
 int ammo = 10;
 
@@ -74,7 +75,7 @@ void setup() {
     lcd.setCursor(0,0);
     lcd.print("CONNECTING");
   }
-  if (client.connect("192.168.1.15", 1234)) {   
+  if (client.connect("192.168.63.78", 1234)) {   
     lcd.setCursor(0,0);
     lcd.print("                ");
     lcd.setCursor(2,0);
@@ -93,10 +94,15 @@ void setup() {
 
 void loop() {
   //shooting code
-  char trig1 = digitalRead(trigger);
-  delay(25);
+  //char trig1 = digitalRead(trigger);
+  //delay(10);
   char trig2 = digitalRead(trigger);
-  if ((trig2 == HIGH)&&(trig1==LOW)) {  // Button pressed (assuming pull-down)
+  if(trig2 == HIGH && hasShot){
+  isShot();
+  hasShot = false;
+  delay(25);
+  }
+  if ((trig2 == HIGH) and !hasShot) {  // Button pressed (assuming pull-down)
     if (ammo > 0){
       ammo--;
       //if (client.connected()) 
@@ -104,11 +110,25 @@ void loop() {
       digitalWrite(laser,HIGH);
     }
     updateLCD();
-    delay(300);
+    hasShot = true;
+    delay(50);
+    isShot();
+    bool shot1 = shot;
+    delay(50);
+    isShot();
+    bool shot2 = shot;
+    delay(50);
+    isShot();
+    bool shot3 = shot;
+    delay(50);
+    isShot();
+    bool shot4 = shot;
     digitalWrite(laser,LOW);
+    if(shot1 || shot2 || shot3 || shot4)
+    shot = true;
   }
   //shot code
-  //isShot();
+  isShot();
   if(shot){
     life--;
     lcd.setCursor(0,0);
