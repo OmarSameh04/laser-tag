@@ -74,6 +74,8 @@ void setup() {
     delay(700);
     lcd.setCursor(0,0);
     lcd.print("CONNECTING");
+    if(digitalRead(trigger) == HIGH)
+    break;
   }
   if (client.connect("192.168.63.78", 1234)) {   
     lcd.setCursor(0,0);
@@ -140,6 +142,15 @@ void loop() {
     }    
     if(life==0){
       //endgame logic
+      updateLCD();
+      lcd.setCursor(0,0);
+      lcd.print("                ");
+      lcd.print("  Game Over!");
+      lcd.setCursor(0,1);
+      lcd.print("                ");
+      lcd.print("  Game Over!");
+      while(digitalRead(trigger) != HIGH)
+      delay(10);
     }
     else{
       shot = false;
@@ -166,6 +177,15 @@ void loop() {
     ammo = 10;
     updateLCD();
   } 
+  if (client.available()) {
+  String msg = client.readStringUntil('\n');
+  msg.trim();
+  if (msg == "RESET") {
+      life = 10;
+      ammo = 10;
+      updateLCD();
+    }
+  }
 }
 
 void updateLCD() {
